@@ -1,0 +1,131 @@
+package com.starsoft.caone.view.activity;
+
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.support.v4.content.ContextCompat;
+import android.view.MenuItem;
+import android.widget.ImageView;
+import android.widget.TextView;
+import butterknife.BindView;
+import com.squareup.picasso.Picasso;
+import com.starsoft.caone.CAOne;
+import com.starsoft.caone.R;
+import com.starsoft.caone.view.base.BaseActivity;
+import com.starsoft.caone.view.presenter.TeamDetailPresenter;
+import com.starsoft.caone.view.viewmodel.TeamViewModel;
+import com.starsoft.caone.view.widget.HeaderView;
+import javax.inject.Inject;
+
+public class TeamDetailsActivity extends BaseActivity implements TeamDetailPresenter.View  {
+  private final static String TEAM_FLAG_KEY = "team_flag_key";
+  @Inject
+  TeamDetailPresenter presenter;
+
+  @BindView(R.id.header_detail)
+  HeaderView detailHeader;
+  @BindView(R.id.image_detail_history)
+  ImageView imageDetailHistory;
+  @BindView(R.id.label_best_result)
+  TextView labelBestResult;
+  @BindView(R.id.label_coach) TextView labelCoach;
+  @BindView(R.id.label_leading_scorer) TextView labelLeadingScorer;
+  @BindView(R.id.label_stadium) TextView labelStadium;
+  @BindView(R.id.label_description_1) TextView labelDescription1;
+  @BindView(R.id.label_matches_played) TextView labelMatchesPlayed;
+  @BindView(R.id.label_overall) TextView labelOverall;
+  @BindView(R.id.label_final_tournament) TextView labelFinalTournament;
+  @BindView(R.id.image_detail_profile) ImageView imageDetailProfile;
+  @BindView(R.id.label_description_2) TextView labelDescription2;
+  @BindView(R.id.label_description_3) TextView labelDescription3;
+
+  public static void open(Context context, String superHeroName) {
+    Intent intent = new Intent(context, TeamDetailsActivity.class);
+    intent.putExtra(TEAM_FLAG_KEY, superHeroName);
+    context.startActivity(intent);
+  }
+
+  @Override public void initView() {
+    super.initView();
+    initializeToolbar();
+    initializeDagger();
+    initializePresenter();
+  }
+
+  @Override protected int getLayoutId() {
+    return R.layout.activity_team_detail;
+  }
+
+  private void initializeDagger() {
+    CAOne euroApplication = (CAOne) getApplication();
+    euroApplication.getMainComponent().inject(this);
+  }
+
+  private void initializePresenter() {
+    presenter.setView(this);
+    String flag = getTeamFlagKey();
+    presenter.setTeamFlag(flag);
+    presenter.initialize();
+  }
+
+  @Override public boolean onOptionsItemSelected(MenuItem item) {
+    if (item.getItemId() == android.R.id.home) {
+      onBackPressed();
+    }
+    return super.onOptionsItemSelected(item);
+  }
+
+  @Override protected void onDestroy() {
+    super.onDestroy();
+    presenter.destroy();
+  }
+
+  private String getTeamFlagKey() {
+    return getIntent().getExtras().getString(TEAM_FLAG_KEY);
+  }
+
+  @Override public void showTeam(TeamViewModel teamViewModel) {
+
+    if (getToolbar() != null) {
+      getToolbar().setTitle(teamViewModel.getName());
+    }
+    detailHeader.initializeHeader(teamViewModel.getDisclaimer(), teamViewModel.getNickName());
+    getImage(teamViewModel.getPictureOfDetail(), imageDetailHistory);
+    labelBestResult.setText(teamViewModel.getBestResult());
+    labelCoach.setText(teamViewModel.getCoach());
+    labelLeadingScorer.setText(teamViewModel.getLeadingScorer());
+    labelStadium.setText(teamViewModel.getStadium());
+    labelDescription1.setText(teamViewModel.getDescriptionPart1());
+    labelMatchesPlayed.setText(teamViewModel.getMatchesPlayed());
+    labelOverall.setText(teamViewModel.getOverall());
+    labelFinalTournament.setText(teamViewModel.getFinalTournament());
+    getImage(teamViewModel.getPictureOfProfile(), imageDetailProfile);
+    labelDescription2.setText(teamViewModel.getDescriptionPart2());
+    labelDescription3.setText(teamViewModel.getDescriptionPart3());
+  }
+
+  private void getImage(String photo, ImageView photoImageView) {
+
+    //Picasso.with(photoImageView.getContext()).load(photo).fit().centerCrop().into(photoImageView);
+    Picasso.get().load(photo).fit().centerCrop().into(photoImageView);
+  }
+
+  private void initializeToolbar() {
+    if (Build.VERSION.SDK_INT >= 21) {
+      getWindow().setStatusBarColor(
+          ContextCompat.getColor(TeamDetailsActivity.this, R.color.colorPrimaryDark));
+    }
+
+    if (getSupportActionBar() != null) {
+      getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+  }
+
+  @Override public void showLoading() {
+    // I´m thinking...
+  }
+
+  @Override public void hideLoading() {
+    // I´m thinking...
+  }
+}
